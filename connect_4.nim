@@ -15,6 +15,9 @@ type
     Board = ref object of RootObj
         grid: array[42, string]
         columnPos: array[7, int]
+        lastMove: int
+        playerXMoves: seq[int]
+        playerOMoves: seq[int]
 
 proc newBoard(): Board =
     var board  = Board()
@@ -25,11 +28,17 @@ proc newBoard(): Board =
                   "·", "·", "·", "·", "·", "·", "·",
                   "·", "·", "·", "·", "·", "·", "·"]
     board.columnPos = [35, 36, 37, 38, 39, 40, 41]
+    board.lastMove = 0
     return board
 
-proc done(this: Board): (bool, string) =
+proc done(this: Board, player: string): (bool, string) =
     # Check if there are 4 chips of the same kind connected
-    echo ("CHecking for connections...")
+    let lastMove = if player == "X" : this.playerXMoves[high(this.playerXMoves)]
+                    else : this.playerOMoves[high(this.playerXMoves)]
+    echo ("Last move was " & $lastMove)
+    echo ("Checking for win...")
+    
+
 
 proc `$`(this:Board): string =
     echo ("1 2 3 4 5 6 7")
@@ -83,7 +92,14 @@ proc enterMove(move: int, this: Board, player: string) : bool =
     # Set the chip on the colum at the right spot.
 
     if move >= firstCol and move <= lastCol and this.columnPos[move] >= firstCol:
-        this.grid[this.columnPos[move]] = player
+        let spot = this.columnPos[move]
+        this.grid[spot] = player
+        # Keep track of each players moves
+        if (player == "X"):
+            this.playerXMoves.add(spot)
+        else:
+            this.playerOMoves.add(spot)
+
         this.columnPos[move] += up
         return true
     else: 
@@ -124,8 +140,8 @@ proc startGame*(this:Game): void=
         #             this.board.list[currentEmptySpots.rand()] = this.aiPlayer
             
             
+        let (done, winner) = this.board.done(this.currentPlayer)
         this.changePlayer()
-        let (done, winner) = this.board.done()
         
         if done:
             echo this.board
