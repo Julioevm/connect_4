@@ -16,8 +16,6 @@ type
     Board = ref object of RootObj
         grid: array[42, string]
         columnPos: array[7, int]
-
-        rightBound: array[6, int]
         lastMove: int
         playerXMoves: seq[int]
         playerOMoves: seq[int]
@@ -59,7 +57,8 @@ proc done(this: Board, player: string): (bool, string) =
         for y in 0..rows - connect:
             connections = 0
             let spot = (7 * y) + x
-            for z in countUp(spot, (spot + ((connect - 1 ) * cols)) - 1, cols):
+            let verticalLimit = (spot + ((connect - 1 ) * cols)) - 1
+            for z in countUp(spot, verticalLimit, cols):
                 if this.grid[z] == player:
                     isConnected = true
                     connections += 1
@@ -75,8 +74,23 @@ proc done(this: Board, player: string): (bool, string) =
     for x in 0..<cols:
         for y in 0..<rows:
             connections = 0
-            let spot = (7 * y) + x
-            for z in countUp(spot, (cols * ((cols - x ) - y )) - 1, down + right):
+            let spot = (cols * y) + x
+            # Left - Right
+            let leftRightLimit = (cols * ((cols - x ) - y )) - 1
+            for z in countUp(spot, leftRightLimit, down + right):
+                if z > (cols * rows): break
+                if this.grid[z] == player:
+                    isConnected = true
+                    connections += 1
+                else:
+                    isConnected = false
+                    connections = 0
+                if connections == connect:                        
+                    echo "Connected " & $connect
+                    return (isConnected, player)
+            # Right - Left
+            let rightLeftLimit = (spot + (rows * ( rows - (y + 1)))) - 1
+            for z in countUp(spot, rightLeftLimit, down + left):
                 if z > (cols * rows): break
                 echo z
                 if this.grid[z] == player:
@@ -116,7 +130,7 @@ proc newGame(aiPlayer:string="", difficulty:int=9): Game =
     game.board = newBoard()
     game.currentPlayer = "X"
     game.aiPlayer = aiPlayer
-    game.difficulty = difficulty # 9 is the hardest 1 the easiest
+    game.difficulty = difficulty
 
     return game
 
