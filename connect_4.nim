@@ -57,8 +57,9 @@ proc done(this: Board, player: string): (bool, string) =
     # Vertical
     for x in 0..cols:
         for y in 0..rows - connect:
-            let spot = 7 * y + x
-            for z in countUp(spot, (spot + connect * cols), cols):
+            connections = 0
+            let spot = (7 * y) + x
+            for z in countUp(spot, (spot + ((connect - 1 ) * cols)) - 1, cols):
                 if this.grid[z] == player:
                     isConnected = true
                     connections += 1
@@ -71,6 +72,22 @@ proc done(this: Board, player: string): (bool, string) =
                     return (isConnected, player)
 
     # Diagonals
+    for x in 0..<cols:
+        for y in 0..<rows:
+            connections = 0
+            let spot = (7 * y) + x
+            for z in countUp(spot, (cols * ((cols - x ) - y )) - 1, down + right):
+                if z > (cols * rows): break
+                echo z
+                if this.grid[z] == player:
+                    isConnected = true
+                    connections += 1
+                else:
+                    isConnected = false
+                    connections = 0
+                if connections == connect:                        
+                    echo "Connected " & $connect
+                    return (isConnected, player)
 
     return (isConnected, player)
 
@@ -85,6 +102,7 @@ type
 
 proc `<` (a, b: Move): bool =
     return a.score < b.score
+
 type
     Game = ref object of RootObj
         currentPlayer*: string
