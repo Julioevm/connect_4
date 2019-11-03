@@ -49,7 +49,6 @@ proc done(this: Board, player: string): (bool, string) =
                     connections = 0
                     break
                 if connections == connect:                        
-                    echo "Connected " & $connect
                     return (isConnected, player)
 
     # Vertical
@@ -67,7 +66,6 @@ proc done(this: Board, player: string): (bool, string) =
                     connections = 0
                     break
                 if connections == connect:                        
-                    echo "Connected " & $connect
                     return (isConnected, player)
 
     # Diagonals
@@ -86,13 +84,11 @@ proc done(this: Board, player: string): (bool, string) =
                     isConnected = false
                     connections = 0
                 if connections == connect:                        
-                    echo "Connected " & $connect
                     return (isConnected, player)
             # Right - Left
             let rightLeftLimit = (spot + (rows * ( rows - (y + 1)))) - 1
             for z in countUp(spot, rightLeftLimit, down + left):
                 if z > (cols * rows): break
-                echo z
                 if this.grid[z] == player:
                     isConnected = true
                     connections += 1
@@ -100,7 +96,6 @@ proc done(this: Board, player: string): (bool, string) =
                     isConnected = false
                     connections = 0
                 if connections == connect:                        
-                    echo "Connected " & $connect
                     return (isConnected, player)
 
     return (isConnected, player)
@@ -176,7 +171,7 @@ proc enterMove(move: int, this: Board, player: string) : bool =
 
 proc writeHelp() =
     echo """
-    Connect 4 0.0.2
+    Connect 4 0.1.0
     Set the value for the argument with = or :
         connect_4 -a=O -l=9
     Arguments:
@@ -196,18 +191,21 @@ proc startGame*(this:Game): void=
         else:
             if this.currentPlayer == this.aiPlayer:
                 echo "AI player turn!"
-        #        let currentEmptySpots = this.board.availableMoves()
-                
-        #         if len(currentEmptySpots) <= this.difficulty:
-        #             echo "AI move!"
+                let currentMoves = this.board.playerOMoves.len + this.board.playerXMoves.len
+
+                if this.difficulty > 9: this.difficulty = 9
+                elif this.difficulty < 0: this.difficulty = 0
+
+                if currentMoves >= 9 - this.difficulty:
+                    echo "AI move..."
         #             let move = getBestMove(this, this.board, this.aiPlayer)
-        #             this.board.list[move.pos] = this.aiPlayer
-        #         else:
-        #             # Do a random move on an empty spot.
-                echo "Random move!"
-                while true:
-                    if enterMove(cols.rand(), this.board, this.currentPlayer): break
-            
+        #             enterMove(move, this.board, this.currentPlayer)
+                else:
+                    # Do a random move on an empty spot.
+                    echo "Random move!"
+                    while true:
+                        if enterMove(cols.rand(), this.board, this.currentPlayer): break
+    
             
         let (done, winner) = this.board.done(this.currentPlayer)
         this.changePlayer()
