@@ -56,11 +56,11 @@ proc score(this: Board, player: string): int =
     # echo "Scores player " & player
     # echo this.grid
     # Horizontal
-    for x in 0..<COLS - CONNECT:
+    for x in 0..COLS - CONNECT:
         for y in 0..<ROWS:
             var points = 0
             let spot = 7 * y + x
-            for z in spot..spot + CONNECT:
+            for z in spot..spot + (CONNECT - 1):
                 if this.grid[z] == player:
                     points += 1
             if points == CONNECT:                      
@@ -170,13 +170,11 @@ proc enterMove(this: Board, move: int, player: string) : bool =
         echo ("Invalid move")
         return false
 
-proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int = 0, beta: int = 0): Move =
+proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int = -99999, beta: int = 99999): Move =
     var score = board.score(player)
-    if player != this.aiPlayer and score == this.score:
-        score = score * -1 
-
+    
     if this.done(depth, score):
-        return (score: score, pos: 0)
+        return (score: score, pos: -1)
     
     var max = (-1, -99999)
     var min = (-1, 99999)
@@ -185,25 +183,30 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
 
     for pos in board.availableMoves():
         var newBoard = newBoard()
-        #newboard = board
         deepCopy(newBoard, board)
 
         if newBoard.enterMove(pos, player):
             # echo $alpha & " " & $beta
             let move = this.getBestMove(newBoard, nextPlayer[player], depth - 1, alpha, beta)
-            if player == this.aiPlayer and (max[0] == -1 or move.score > max[1]):
+
+            if player == this.aiPlayer and (move.score > max[1]):
                 max[0] = pos
                 max[1] = move.score
-                alpha = max[1]
-            elif player != this.aiPlayer and (min[0] == -1 or move.score < min[1]):
+                alpha = max(alpha, move.score)
+                #alpha = move.score
+            elif player != this.aiPlayer and (move.score < min[1]):
                 min[0] = pos
                 min[1] = move.score
-                beta = min[1]
+                beta = min(beta, move.score)
+                #beta = move.score
+
+            if this.aiPlayer == player:
+                # echo move
+                echo max
+                echo $alpha & " " & $beta
             
-            if player == this.aiPlayer and alpha >= beta:
-                 return max
-            elif player != this.aiPlayer and alpha >= beta:
-                 return min
+            if alpha >= beta:
+                break
 
     if player == this.aiPlayer:
         return max
@@ -242,10 +245,10 @@ proc startGame*(this:Game): void=
                 move = getBestMove(this, this.board, this.aiPlayer, this.difficulty)
                 discard this.board.enterMove(move.pos, this.currentPlayer)
                 score = move.score
+                echo move
         
         if this.currentPlayer != this.aiPlayer and score == this.score:
             score = score * -1
-        # echo score
         let done = this.done(this.difficulty, score)
         
         if done:
