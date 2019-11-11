@@ -177,8 +177,8 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
     if this.done(depth, score):
         return (score: score, pos: -1)
     
-    var max = (-1, -99999)
-    var min = (-1, 99999)
+    var max = (-99999, -1)
+    var min = (99999, -1)
     var alpha = alpha
     var beta = beta
 
@@ -189,16 +189,16 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
         discard newBoard.enterMove(pos, player)
         let move = this.getBestMove(newBoard, nextPlayer[player], depth - 1, alpha, beta)
 
-        if player == this.aiPlayer and (move.score >= max[1]):
-            max[0] = pos
-            max[1] = move.score
-            alpha = max(alpha, move.score)
-            #alpha = move.score
-        elif player != this.aiPlayer and (move.score <= min[1]):
-            min[0] = pos
-            min[1] = move.score
-            beta = min(beta, move.score)
-            #beta = move.score
+        if player == this.aiPlayer and (move.score >= max[0] or max[1] == -1):
+            max[0] = move.score
+            max[1] = pos
+            #alpha = max(alpha, move.score)
+            alpha = move.score
+        elif player != this.aiPlayer and (move.score <= min[0] or min[1] == -1):
+            min[0] = move.score
+            min[1] = pos
+            #beta = min(beta, move.score)
+            beta = move.score
         if alpha >= beta:
             break
 
