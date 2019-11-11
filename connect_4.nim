@@ -58,7 +58,7 @@ proc score(this: Board, player: string, aiPlayer: string): int =
                 if this.grid[z] == player:
                     points += 1
             if points == CONNECT:
-                if player == aiPlayer:                      
+                if player == aiPlayer:
                     return 100000
                 else:
                     return -100000
@@ -70,12 +70,12 @@ proc score(this: Board, player: string, aiPlayer: string): int =
         for y in 0..ROWS - CONNECT:
             var points = 0
             let spot = (7 * y) + x
-            let verticalLimit = (spot + ((CONNECT - 1 ) * COLS))
-            for z in countUp(spot, verticalLimit, COLS):
+            let verticalLimit = (spot + ((CONNECT - 1 ) * DOWN))
+            for z in countUp(spot, verticalLimit, DOWN):
                 if this.grid[z] == player:
                     points += 1
             if points == CONNECT:                          
-                if player == aiPlayer:                      
+                if player == aiPlayer:
                     return 100000
                 else:
                     return -100000
@@ -90,7 +90,7 @@ proc score(this: Board, player: string, aiPlayer: string): int =
             let spot = (COLS * y) + x
             let leftRightLimit = spot + ((DOWN + RIGHT) * (CONNECT - 1))
             for z in countUp(spot, leftRightLimit, DOWN + RIGHT):
-                if z > (COLS * ROWS): break
+                if z >= (COLS * ROWS): break
                 if this.grid[z] == player:
                     points += 1
 
@@ -101,20 +101,20 @@ proc score(this: Board, player: string, aiPlayer: string): int =
                     return -100000
             else:
                 diagonalPoints1 += points
-            # Right - Left
+    # Right - Left
     for x in CONNECT-1..<COLS:
         for y in CONNECT-1..<ROWS:
             var points = 0
             let spot = (COLS * y) + x
             points = 0
-            let rightLeftLimit = (spot + (ROWS * ( ROWS - (y + 1)))) - 1
+            let rightLeftLimit = (spot + (DOWN + LEFT) * (CONNECT - 1))
             for z in countUp(spot, rightLeftLimit, DOWN + LEFT):
-                if z > (COLS * ROWS): break
+                if z >= (COLS * ROWS): break
+                echo z
                 if this.grid[z] == player:
                     points += 1
-
             if points == CONNECT:                         
-                if player == aiPlayer:                      
+                if player == aiPlayer:
                     return 100000
                 else:
                     return -100000
@@ -247,7 +247,7 @@ proc startGame*(this:Game): void=
             if score == this.score:
                 echo ("The computer wins!")
             elif score == -this.score:
-                echo("The player wins!")
+                echo(fmt"The player {this.currentPlayer} wins!")
             break;
 
         this.changePlayer()
