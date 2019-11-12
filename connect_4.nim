@@ -188,12 +188,12 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
         discard newBoard.enterMove(pos, player)
         let move = this.getBestMove(newBoard, nextPlayer[player], depth - 1, alpha, beta)
 
-        if player == this.aiPlayer and (move.score >= max[0] or max[1] == -1):
+        if player == this.aiPlayer and (move.score > max[0] or max[1] == -1):
             max[0] = move.score
             max[1] = pos
             #alpha = max(alpha, move.score)
             alpha = move.score
-        elif player != this.aiPlayer and (move.score <= min[0] or min[1] == -1):
+        elif player != this.aiPlayer and (move.score < min[0] or min[1] == -1):
             min[0] = move.score
             min[1] = pos
             #beta = min(beta, move.score)
@@ -234,8 +234,8 @@ proc startGame*(this:Game): void=
         else:
             if this.currentPlayer == this.aiPlayer:
                 echo "AI player turn!"
-                echo "AI move..."
                 move = getBestMove(this, this.board, this.aiPlayer, this.difficulty)
+                echo "AI plays " & $(move.pos + 1)
                 discard this.board.enterMove(move.pos, this.currentPlayer)
                 score = move.score
         
