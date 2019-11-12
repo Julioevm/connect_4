@@ -103,14 +103,13 @@ proc score(this: Board, player: string, aiPlayer: string): int =
                 diagonalPoints1 += points
     # Right - Left
     for x in CONNECT-1..<COLS:
-        for y in CONNECT-1..<ROWS:
+        for y in 0..ROWS - CONNECT:
             var points = 0
             let spot = (COLS * y) + x
             points = 0
             let rightLeftLimit = (spot + (DOWN + LEFT) * (CONNECT - 1))
             for z in countUp(spot, rightLeftLimit, DOWN + LEFT):
                 if z >= (COLS * ROWS): break
-                echo z
                 if this.grid[z] == player:
                     points += 1
             if points == CONNECT:                         
