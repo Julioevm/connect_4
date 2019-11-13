@@ -1,4 +1,4 @@
-import sequtils, tables, strutils, strformat, os, parseopt, math
+import tables, strutils, strformat, parseopt, math
 
 let nextPlayer = {"X":"O", "O":"X"}.toTable
 const 
@@ -43,7 +43,7 @@ proc newBoard(): Board =
 proc done(this: Game, depth: int, score: int): bool =
     return depth <= 0 or score == this.score or score == -this.score
 
-proc score(this: Board, player: string, aiPlayer: string): int =
+proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     var horizontalPoints = 0
     var verticalPoints = 0
     var diagonalPoints1 = 0
@@ -58,6 +58,7 @@ proc score(this: Board, player: string, aiPlayer: string): int =
                 if this.grid[z] == player:
                     points += 1
             if points == CONNECT:
+                if d: echo fmt"horizontal {spot} to {spot + (CONNECT - 1)}" 
                 if player == aiPlayer:
                     return 100000
                 else:
@@ -75,6 +76,7 @@ proc score(this: Board, player: string, aiPlayer: string): int =
                 if this.grid[z] == player:
                     points += 1
             if points == CONNECT:                          
+                if d: echo fmt"vertical {spot} to {verticalLimit}" 
                 if player == aiPlayer:
                     return 100000
                 else:
@@ -90,12 +92,11 @@ proc score(this: Board, player: string, aiPlayer: string): int =
             let spot = (COLS * y) + x
             let leftRightLimit = spot + ((DOWN + RIGHT) * (CONNECT - 1))
             for z in countUp(spot, leftRightLimit, DOWN + RIGHT):
-                if z >= (COLS * ROWS): break
                 if this.grid[z] == player:
                     points += 1
-
             if points == CONNECT:                         
-                if player == aiPlayer:                      
+                if d: echo fmt"leftRight {spot} to {leftRightLimit}"                      
+                if player == aiPlayer:
                     return 100000
                 else:
                     return -100000
@@ -113,6 +114,7 @@ proc score(this: Board, player: string, aiPlayer: string): int =
                 if this.grid[z] == player:
                     points += 1
             if points == CONNECT:                         
+                if d: echo fmt"rightLeft {spot} to {rightLeftLimit}" 
                 if player == aiPlayer:
                     return 100000
                 else:
@@ -191,12 +193,10 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
         if player == this.aiPlayer and (move.score > max[0] or max[1] == -1):
             max[0] = move.score
             max[1] = pos
-            #alpha = max(alpha, move.score)
             alpha = move.score
         elif player != this.aiPlayer and (move.score < min[0] or min[1] == -1):
             min[0] = move.score
             min[1] = pos
-            #beta = min(beta, move.score)
             beta = move.score
         if alpha >= beta:
             break
@@ -229,16 +229,14 @@ proc startGame*(this:Game): void=
                 stdout.write("Player " & this.currentPlayer & " enter your move: (1-7)")
                 let move = stdin.readLine()
                 if move.isDigit and this.board.enterMove(move.parseInt - 1, this.currentPlayer): break
-            
-            score = this.board.score(this.currentPlayer, this.aiPlayer)
         else:
             if this.currentPlayer == this.aiPlayer:
                 echo "AI player turn!"
                 move = getBestMove(this, this.board, this.aiPlayer, this.difficulty)
                 echo "AI plays " & $(move.pos + 1)
                 discard this.board.enterMove(move.pos, this.currentPlayer)
-                score = move.score
-        
+    
+        score = this.board.score(this.currentPlayer, this.aiPlayer)
         let done = this.done(this.difficulty, score)
         
         if done:
