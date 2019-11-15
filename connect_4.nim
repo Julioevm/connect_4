@@ -57,6 +57,9 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             for z in spot..spot + (CONNECT - 1):
                 if this.grid[z] == player:
                     points += 1
+                elif this.grid[z] == "·":
+                    horizontalPoints += 1
+                
             if points == CONNECT:
                 if d: echo fmt"horizontal {spot} to {spot + (CONNECT - 1)}" 
                 if player == aiPlayer:
@@ -75,6 +78,8 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             for z in countUp(spot, verticalLimit, DOWN):
                 if this.grid[z] == player:
                     points += 1
+                elif this.grid[z] == "·":
+                    verticalPoints += 1
             if points == CONNECT:                          
                 if d: echo fmt"vertical {spot} to {verticalLimit}" 
                 if player == aiPlayer:
@@ -94,6 +99,8 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             for z in countUp(spot, leftRightLimit, DOWN + RIGHT):
                 if this.grid[z] == player:
                     points += 1
+                elif this.grid[z] == "·":
+                    diagonalPoints1 += 1
             if points == CONNECT:                         
                 if d: echo fmt"leftRight {spot} to {leftRightLimit}"                      
                 if player == aiPlayer:
@@ -113,6 +120,8 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
                 if z >= (COLS * ROWS): break
                 if this.grid[z] == player:
                     points += 1
+                elif this.grid[z] == "·":
+                    diagonalPoints2 += 1
             if points == CONNECT:                         
                 if d: echo fmt"rightLeft {spot} to {rightLeftLimit}" 
                 if player == aiPlayer:
@@ -193,11 +202,11 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
         if player == this.aiPlayer and (move.score > max[0] or max[1] == -1):
             max[0] = move.score
             max[1] = pos
-            alpha = move.score
+            alpha = max(move.score, alpha)
         elif player != this.aiPlayer and (move.score < min[0] or min[1] == -1):
             min[0] = move.score
             min[1] = pos
-            beta = move.score
+            beta = min(move.score, beta)
         if alpha >= beta:
             break
 
