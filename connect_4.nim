@@ -9,6 +9,9 @@ const
     DOWN = COLS 
     RIGHT = 1
     LEFT = -RIGHT
+    COLOR_DEFAULT = "\e[00m"
+    COLOR_RED = "\e[0;31m"
+    COLOR_BLUE = "\e[1;34m"
 
 type
     Board = ref object of RootObj
@@ -130,7 +133,7 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
                     return -100000
             else:
                 diagonalPoints2 += points
-                
+
     var returnScore = horizontalPoints + verticalPoints + diagonalPoints1 + diagonalPoints2
     if player != aiPlayer: 
         returnScore = returnScore * -1
@@ -139,7 +142,13 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
 proc `$`(this:Board): string =
     echo ("1 2 3 4 5 6 7")
     for i in 0..high(this.grid):
-        stdout.write(this.grid[i] & " ")
+        var color = COLOR_DEFAULT
+        if this.grid[i] == "X":
+            color = COLOR_BLUE
+        elif this.grid[i] == "O":
+            color = COLOR_RED
+        
+        stdout.write(fmt"{color}{this.grid[i]}{COLOR_DEFAULT} ")
         if (i + 1) mod 7 == 0 : stdout.write("\n")
 
 proc newGame(aiPlayer:string="", difficulty:int=4): Game =
@@ -238,7 +247,7 @@ proc startGame*(this:Game): void=
         echo this.board
         if this.aiPlayer != this.currentPlayer:
             while true:
-                stdout.write("Player " & this.currentPlayer & " enter your move: (1-7)")
+                stdout.write(fmt"Player {this.currentPlayer} enter your move: (1-7)")
                 let move = stdin.readLine()
                 if move.isDigit and this.board.enterMove(move.parseInt - 1, this.currentPlayer): break
         else:
@@ -254,9 +263,13 @@ proc startGame*(this:Game): void=
         if done:
             echo this.board
             if score == this.score:
-                echo ("The computer wins!")
+                echo (fmt"{COLOR_RED}The computer wins!{COLOR_DEFAULT}")
             elif score == -this.score:
-                echo(fmt"The player {this.currentPlayer} wins!")
+                var color = COLOR_BLUE
+                if this.currentPlayer == "O":
+                    color = COLOR_RED
+
+                echo(fmt"{color}The player {this.currentPlayer} wins!{COLOR_DEFAULT}")
             break;
 
         this.changePlayer()
