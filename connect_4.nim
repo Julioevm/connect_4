@@ -57,8 +57,8 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             for z in spot..spot + (CONNECT - 1):
                 if this.grid[z] == player:
                     points += 1
-                elif this.grid[z] == "·":
-                    horizontalPoints += 1
+                else:
+                    points = 0
                 
             if points == CONNECT:
                 if d: echo fmt"horizontal {spot} to {spot + (CONNECT - 1)}" 
@@ -78,8 +78,8 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             for z in countUp(spot, verticalLimit, DOWN):
                 if this.grid[z] == player:
                     points += 1
-                elif this.grid[z] == "·":
-                    verticalPoints += 1
+                else:
+                    points = 0
             if points == CONNECT:                          
                 if d: echo fmt"vertical {spot} to {verticalLimit}" 
                 if player == aiPlayer:
@@ -99,8 +99,8 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             for z in countUp(spot, leftRightLimit, DOWN + RIGHT):
                 if this.grid[z] == player:
                     points += 1
-                elif this.grid[z] == "·":
-                    diagonalPoints1 += 1
+                else:
+                    points = 0
             if points == CONNECT:                         
                 if d: echo fmt"leftRight {spot} to {leftRightLimit}"                      
                 if player == aiPlayer:
@@ -120,8 +120,8 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
                 if z >= (COLS * ROWS): break
                 if this.grid[z] == player:
                     points += 1
-                elif this.grid[z] == "·":
-                    diagonalPoints2 += 1
+                else:
+                    points = 0
             if points == CONNECT:                         
                 if d: echo fmt"rightLeft {spot} to {rightLeftLimit}" 
                 if player == aiPlayer:
@@ -130,8 +130,11 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
                     return -100000
             else:
                 diagonalPoints2 += points
-
-    return horizontalPoints + verticalPoints + diagonalPoints1 + diagonalPoints2
+                
+    var returnScore = horizontalPoints + verticalPoints + diagonalPoints1 + diagonalPoints2
+    if player != aiPlayer: 
+        returnScore = returnScore * -1
+    return returnScore
 
 proc `$`(this:Board): string =
     echo ("1 2 3 4 5 6 7")
@@ -217,7 +220,7 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
 
 proc writeHelp() =
     echo """
-    CONNECT 4 0.1.0
+    CONNECT 4 v0.9.0
     Set the value for the argument with = or :
         connect_4 -a=O -l=9
     Arguments:
