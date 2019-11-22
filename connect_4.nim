@@ -46,6 +46,22 @@ proc newBoard(): Board =
 proc done(this: Game, depth: int, score: int): bool =
     return depth <= 0 or score == this.score or score == -this.score
 
+proc checkPoints(this: Board, start: int, finish: int, increment: int, player: string): int =
+    var points = 0
+    var whiteSpots = 0
+    for z in countUp(start, finish, increment):
+        if this.grid[z] == player:
+            points += 1
+        elif this.grid[z] == nextPlayer[player]:
+            points = 0
+        else:
+            if whiteSpots > 1:
+                points = 0
+            whiteSpots += 1
+            
+    if points < 3: points = 0
+    return points
+
 proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     var horizontalPoints = 0
     var verticalPoints = 0
@@ -55,13 +71,9 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     # Horizontal
     for x in 0..COLS - CONNECT:
         for y in 0..<ROWS:
-            var points = 0
             let spot = 7 * y + x
-            for z in spot..spot + (CONNECT - 1):
-                if this.grid[z] == player:
-                    points += 1
-                else:
-                    points = 0
+            let endSpot = spot + (CONNECT - 1)
+            let points = checkPoints(this, spot, endSpot, 1, player)
                 
             if points == CONNECT:
                 if d: echo fmt"horizontal {spot} to {spot + (CONNECT - 1)}" 
@@ -75,14 +87,10 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     # Vertical
     for x in 0..<COLS:
         for y in 0..ROWS - CONNECT:
-            var points = 0
             let spot = (7 * y) + x
             let verticalLimit = (spot + ((CONNECT - 1 ) * DOWN))
-            for z in countUp(spot, verticalLimit, DOWN):
-                if this.grid[z] == player:
-                    points += 1
-                else:
-                    points = 0
+            let points = checkPoints(this, spot, verticalLimit, DOWN, player)
+
             if points == CONNECT:                          
                 if d: echo fmt"vertical {spot} to {verticalLimit}" 
                 if player == aiPlayer:
@@ -96,14 +104,11 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     # Left - Right
     for x in 0..COLS - CONNECT:
         for y in 0..ROWS - CONNECT:
-            var points = 0
+            
             let spot = (COLS * y) + x
             let leftRightLimit = spot + ((DOWN + RIGHT) * (CONNECT - 1))
-            for z in countUp(spot, leftRightLimit, DOWN + RIGHT):
-                if this.grid[z] == player:
-                    points += 1
-                else:
-                    points = 0
+            let points = checkPoints(this, spot, leftRightLimit, DOWN + RIGHT, player)
+
             if points == CONNECT:                         
                 if d: echo fmt"leftRight {spot} to {leftRightLimit}"                      
                 if player == aiPlayer:
@@ -115,16 +120,11 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     # Right - Left
     for x in CONNECT-1..<COLS:
         for y in 0..ROWS - CONNECT:
-            var points = 0
+            
             let spot = (COLS * y) + x
-            points = 0
             let rightLeftLimit = (spot + (DOWN + LEFT) * (CONNECT - 1))
-            for z in countUp(spot, rightLeftLimit, DOWN + LEFT):
-                if z >= (COLS * ROWS): break
-                if this.grid[z] == player:
-                    points += 1
-                else:
-                    points = 0
+            let points = checkPoints(this, spot, rightLeftLimit, DOWN + LEFT, player)
+
             if points == CONNECT:                         
                 if d: echo fmt"rightLeft {spot} to {rightLeftLimit}" 
                 if player == aiPlayer:
