@@ -59,7 +59,6 @@ proc checkPoints(this: Board, start: int, finish: int, increment: int, player: s
                 points = 0
             whiteSpots += 1
             
-    if points < 3: points = 0
     return points
 
 proc score(this: Board, player: string, aiPlayer: string, d = false): int =
