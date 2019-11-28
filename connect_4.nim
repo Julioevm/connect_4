@@ -1,7 +1,9 @@
 import tables, strutils, strformat, parseopt, math
 
 let nextPlayer = {"X":"O", "O":"X"}.toTable
-const 
+const
+    WIN_SCORE = 100000
+    BIG_INT = 99999
     ROWS = 6
     COLS = 7
     CONNECT = 4
@@ -77,9 +79,9 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             if points == CONNECT:
                 if d: echo fmt"horizontal {spot} to {spot + (CONNECT - 1)}" 
                 if player == aiPlayer:
-                    return 100000
+                    return WIN_SCORE
                 else:
-                    return -100000
+                    return -WIN_SCORE
             else:
                 horizontalPoints += points
 
@@ -93,9 +95,9 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             if points == CONNECT:                          
                 if d: echo fmt"vertical {spot} to {verticalLimit}" 
                 if player == aiPlayer:
-                    return 100000
+                    return WIN_SCORE
                 else:
-                    return -100000
+                    return -WIN_SCORE
             else: 
                 verticalPoints += points
 
@@ -111,9 +113,9 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             if points == CONNECT:                         
                 if d: echo fmt"leftRight {spot} to {leftRightLimit}"                      
                 if player == aiPlayer:
-                    return 100000
+                    return WIN_SCORE
                 else:
-                    return -100000
+                    return -WIN_SCORE
             else:
                 diagonalPoints1 += points
     # Right - Left
@@ -127,9 +129,9 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             if points == CONNECT:                         
                 if d: echo fmt"rightLeft {spot} to {rightLeftLimit}" 
                 if player == aiPlayer:
-                    return 100000
+                    return WIN_SCORE
                 else:
-                    return -100000
+                    return -WIN_SCORE
             else:
                 diagonalPoints2 += points
 
@@ -157,7 +159,7 @@ proc newGame(aiPlayer:string="", difficulty:int=4): Game =
     game.currentPlayer = "X"
     game.aiPlayer = aiPlayer
     game.difficulty = difficulty
-    game.score = 100000
+    game.score = WIN_SCORE
     game.round = 0
 
     return game
@@ -197,9 +199,9 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
     var score = board.score(player, this.aiPlayer)
     if this.done(depth, score):
         return (score: score, pos: -1)
-    
-    var max = (-99999, -1)
-    var min = (99999, -1)
+    #         (score, position)
+    var max = (-BIG_INT, -1)
+    var min = (BIG_INT, -1)
     var alpha = alpha
     var beta = beta
 
