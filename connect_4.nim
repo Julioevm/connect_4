@@ -1,6 +1,5 @@
 import tables, strutils, strformat, parseopt, math
 
-let nextPlayer = {"X":"O", "O":"X"}.toTable
 const
     WIN_SCORE = 100000
     BIG_INT = 99999
@@ -8,12 +7,14 @@ const
     COLS = 7
     CONNECT = 4
     UP = -COLS
-    DOWN = COLS 
+    DOWN = COLS
     RIGHT = 1
     LEFT = -RIGHT
     COLOR_DEFAULT = "\e[00m"
     COLOR_RED = "\e[0;31m"
     COLOR_BLUE = "\e[1;34m"
+
+let nextPlayer = {"X": "O", "O": "X"}.toTable
 
 type
     Board = ref object of RootObj
@@ -21,7 +22,7 @@ type
         columnPos: array[7, int]
         lastMove: int
 
-type 
+type
     Move = tuple[score: int, pos: int]
 
 type
@@ -34,7 +35,7 @@ type
         round*: int
 
 proc newBoard(): Board =
-    var board  = Board()
+    var board = Board()
     board.grid = ["·", "·", "·", "·", "·", "·", "·",
                   "·", "·", "·", "·", "·", "·", "·",
                   "·", "·", "·", "·", "·", "·", "·",
@@ -46,9 +47,10 @@ proc newBoard(): Board =
     return board
 
 proc done(this: Game, depth: int, score: int): bool =
-    return depth <= 0 or score == this.score or score == -this.score
+    return depth > this.difficulty or score == this.score or score == -this.score
 
-proc checkPoints(this: Board, start: int, finish: int, increment: int, player: string): int =
+proc checkPoints(this: Board, start: int, finish: int, increment: int,
+        player: string): int =
     var points = 0
     var whiteSpots = 0
     for z in countUp(start, finish, increment):
@@ -60,7 +62,7 @@ proc checkPoints(this: Board, start: int, finish: int, increment: int, player: s
             if whiteSpots > 1:
                 points = 0
             whiteSpots += 1
-            
+
     return points
 
 proc score(this: Board, player: string, aiPlayer: string, d = false): int =
@@ -75,9 +77,9 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
             let spot = 7 * y + x
             let endSpot = spot + (CONNECT - 1)
             let points = checkPoints(this, spot, endSpot, 1, player)
-                
+
             if points == CONNECT:
-                if d: echo fmt"horizontal {spot} to {spot + (CONNECT - 1)}" 
+                if d: echo fmt"horizontal {spot} to {spot + (CONNECT - 1)}"
                 if player == aiPlayer:
                     return WIN_SCORE
                 else:
@@ -89,29 +91,29 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     for x in 0..<COLS:
         for y in 0..ROWS - CONNECT:
             let spot = (7 * y) + x
-            let verticalLimit = (spot + ((CONNECT - 1 ) * DOWN))
+            let verticalLimit = (spot + ((CONNECT - 1) * DOWN))
             let points = checkPoints(this, spot, verticalLimit, DOWN, player)
 
-            if points == CONNECT:                          
-                if d: echo fmt"vertical {spot} to {verticalLimit}" 
+            if points == CONNECT:
+                if d: echo fmt"vertical {spot} to {verticalLimit}"
                 if player == aiPlayer:
                     return WIN_SCORE
                 else:
                     return -WIN_SCORE
-            else: 
+            else:
                 verticalPoints += points
 
     # Diagonals
     # Left - Right
     for x in 0..COLS - CONNECT:
         for y in 0..ROWS - CONNECT:
-            
+
             let spot = (COLS * y) + x
             let leftRightLimit = spot + ((DOWN + RIGHT) * (CONNECT - 1))
             let points = checkPoints(this, spot, leftRightLimit, DOWN + RIGHT, player)
 
-            if points == CONNECT:                         
-                if d: echo fmt"leftRight {spot} to {leftRightLimit}"                      
+            if points == CONNECT:
+                if d: echo fmt"leftRight {spot} to {leftRightLimit}"
                 if player == aiPlayer:
                     return WIN_SCORE
                 else:
@@ -121,13 +123,13 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
     # Right - Left
     for x in CONNECT-1..<COLS:
         for y in 0..ROWS - CONNECT:
-            
+
             let spot = (COLS * y) + x
             let rightLeftLimit = (spot + (DOWN + LEFT) * (CONNECT - 1))
             let points = checkPoints(this, spot, rightLeftLimit, DOWN + LEFT, player)
 
-            if points == CONNECT:                         
-                if d: echo fmt"rightLeft {spot} to {rightLeftLimit}" 
+            if points == CONNECT:
+                if d: echo fmt"rightLeft {spot} to {rightLeftLimit}"
                 if player == aiPlayer:
                     return WIN_SCORE
                 else:
@@ -136,11 +138,11 @@ proc score(this: Board, player: string, aiPlayer: string, d = false): int =
                 diagonalPoints2 += points
 
     var returnScore = horizontalPoints + verticalPoints + diagonalPoints1 + diagonalPoints2
-    if player != aiPlayer: 
+    if player != aiPlayer:
         returnScore = returnScore * -1
     return returnScore
 
-proc `$`(this:Board): string =
+proc `$`(this: Board): string =
     echo ("1 2 3 4 5 6 7")
     for i in 0..high(this.grid):
         var color = COLOR_DEFAULT
@@ -148,11 +150,11 @@ proc `$`(this:Board): string =
             color = COLOR_BLUE
         elif this.grid[i] == "O":
             color = COLOR_RED
-        
-        stdout.write(fmt"{color}{this.grid[i]}{COLOR_DEFAULT} ")
-        if (i + 1) mod 7 == 0 : stdout.write("\n")
 
-proc newGame(aiPlayer:string="", difficulty:int=4): Game =
+        stdout.write(fmt"{color}{this.grid[i]}{COLOR_DEFAULT} ")
+        if (i + 1) mod 7 == 0: stdout.write("\n")
+
+proc newGame(aiPlayer: string = "", difficulty: int = 4): Game =
     var game = new Game
 
     game.board = newBoard()
@@ -172,30 +174,30 @@ proc newGame(aiPlayer:string="", difficulty:int=4): Game =
     # · · · · · · ·
     # · · · · · · ·
 
-proc changePlayer(this:Game) : void =
+proc changePlayer(this: Game): void =
     this.currentPlayer = nextPlayer[this.currentPlayer]
 
-proc availableMoves(this: Board) : seq[int] =
+proc availableMoves(this: Board): seq[int] =
     var availableCol = newSeq[int]()
     for i in 0..high(this.columnPos):
-        if this.columnPos[i] >= COLS:
+        if this.columnPos[i] >= 0:
             availableCol.add(i)
-    
+
     return availableCol
 
-proc enterMove(this: Board, move: int, player: string) : bool =
+proc enterMove(this: Board, move: int, player: string): bool =
     # Set the chip on the colum at the right spot.
-
     if move >= 0 and move < COLS and this.columnPos[move] >= 0:
         let spot = this.columnPos[move]
         this.grid[spot] = player
         this.columnPos[move] += UP
         return true
-    else: 
+    else:
         echo ("Invalid move")
         return false
 
-proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int = -99999, beta: int = 99999): Move =
+proc getBestMove(this: Game, board: Board, player: string, depth: int = 0,
+        alpha: int = -BIG_INT, beta: int = BIG_INT): Move =
     var score = board.score(player, this.aiPlayer)
     if this.done(depth, score):
         return (score: score, pos: -1)
@@ -210,7 +212,8 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
         deepCopy(newBoard, board)
 
         discard newBoard.enterMove(pos, player)
-        let move = this.getBestMove(newBoard, nextPlayer[player], depth - 1, alpha, beta)
+        let move = this.getBestMove(newBoard, nextPlayer[player], depth + 1,
+                alpha, beta)
 
         if player == this.aiPlayer and (move.score > max[0] or max[1] == -1):
             max[0] = move.score
@@ -230,7 +233,7 @@ proc getBestMove(this: Game, board: Board, player: string, depth:int, alpha: int
 
 proc writeHelp() =
     echo """
-    CONNECT 4 v0.9.0
+    CONNECT 4 v0.9.2
     Set the value for the argument with = or :
         connect_4 -a=O -l=9
     Arguments:
@@ -239,7 +242,7 @@ proc writeHelp() =
         -l | --level   : Difficulty level 9 (High) to 0 (Low)
     """
 
-proc startGame*(this:Game): void=
+proc startGame*(this: Game): void =
     while true:
         var move: Move
         var score = 0
@@ -250,17 +253,18 @@ proc startGame*(this:Game): void=
             while true:
                 stdout.write(fmt"Player {this.currentPlayer} enter your move: (1-7)")
                 let move = stdin.readLine()
-                if move.isDigit and this.board.enterMove(move.parseInt - 1, this.currentPlayer): break
+                if move.isDigit and this.board.enterMove(move.parseInt - 1,
+                        this.currentPlayer): break
         else:
             if this.currentPlayer == this.aiPlayer:
                 echo "AI player turn!"
-                move = getBestMove(this, this.board, this.aiPlayer, this.difficulty)
+                move = getBestMove(this, this.board, this.aiPlayer)
                 echo "AI plays " & $(move.pos + 1)
                 discard this.board.enterMove(move.pos, this.currentPlayer)
-    
+
         score = this.board.score(this.currentPlayer, this.aiPlayer)
         let done = this.done(this.difficulty, score)
-        
+
         if done:
             echo this.board
             if score == this.score:
@@ -273,17 +277,17 @@ proc startGame*(this:Game): void=
                 echo(fmt"{color}The player {this.currentPlayer} wins!{COLOR_DEFAULT}")
             break;
 
-        this.changePlayer()
-    
+            this.changePlayer()
+
 proc cli*() =
-    var 
+    var
         aiplayer = ""
         difficulty = 9
 
     for kind, key, val in getopt():
         case kind
         of cmdArgument, cmdLongOption, cmdShortOption:
-            case key 
+            case key
             of "help", "h":
                 writeHelp()
                 return
