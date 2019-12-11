@@ -47,7 +47,7 @@ proc newBoard(): Board =
     return board
 
 proc done(this: Game, depth: int, score: int): bool =
-    return depth > this.difficulty or score == this.score or score == -this.score
+    return depth > this.difficulty or score == this.score or score == -this.score or this.round > COLS * ROWS
 
 proc checkPoints(this: Board, start: int, finish: int, increment: int,
         player: string): int =
@@ -202,21 +202,17 @@ proc getBestMove(this: Game, board: Board, player: string, depth: int = 0,
     if this.done(depth, score):
         return (score: score, pos: -1)
     #         (score, position)
-    var max = (-BIG_INT, -1)
-    var min = (BIG_INT, -1)
+    var max = (-BIG_INT, 3)
+    var min = (BIG_INT, 3)
     var alpha = alpha
     var beta = beta
-
-    var nextDepth = depth
-    if player != this.aiPlayer:
-        nextDepth += 1
 
     for pos in board.availableMoves():
         var newBoard = newBoard()
         deepCopy(newBoard, board)
 
         discard newBoard.enterMove(pos, player)
-        let move = this.getBestMove(newBoard, nextPlayer[player], nextDepth,
+        let move = this.getBestMove(newBoard, nextPlayer[player], depth + 1,
                 alpha, beta)
 
         if player == this.aiPlayer and (move.score > max[0] or max[1] == -1):
@@ -279,6 +275,8 @@ proc startGame*(this: Game): void =
                     color = COLOR_RED
 
                 echo(fmt"{color}The player {this.currentPlayer} wins!{COLOR_DEFAULT}")
+            else:
+                echo "Its a tie!"
             break;
 
         this.changePlayer()
