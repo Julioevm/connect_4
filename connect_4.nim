@@ -207,12 +207,16 @@ proc getBestMove(this: Game, board: Board, player: string, depth: int = 0,
     var alpha = alpha
     var beta = beta
 
+    var nextDepth = depth
+    if player != this.aiPlayer:
+        nextDepth += 1
+
     for pos in board.availableMoves():
         var newBoard = newBoard()
         deepCopy(newBoard, board)
 
         discard newBoard.enterMove(pos, player)
-        let move = this.getBestMove(newBoard, nextPlayer[player], depth + 1,
+        let move = this.getBestMove(newBoard, nextPlayer[player], nextDepth,
                 alpha, beta)
 
         if player == this.aiPlayer and (move.score > max[0] or max[1] == -1):
@@ -233,7 +237,7 @@ proc getBestMove(this: Game, board: Board, player: string, depth: int = 0,
 
 proc writeHelp() =
     echo """
-    CONNECT 4 v0.9.2
+    CONNECT 4 v0.9.3
     Set the value for the argument with = or :
         connect_4 -a=O -l=9
     Arguments:
