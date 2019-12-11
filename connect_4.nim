@@ -277,7 +277,7 @@ proc startGame*(this: Game): void =
                 echo(fmt"{color}The player {this.currentPlayer} wins!{COLOR_DEFAULT}")
             break;
 
-            this.changePlayer()
+        this.changePlayer()
 
 proc cli*() =
     var
