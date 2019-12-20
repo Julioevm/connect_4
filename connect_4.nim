@@ -202,8 +202,8 @@ proc getBestMove(this: Game, board: Board, player: string, depth: int = 0,
     if this.done(depth, score):
         return (score: score, pos: -1)
     #         (score, position)
-    var max = (-BIG_INT, 3)
-    var min = (BIG_INT, 3)
+    var max = (-BIG_INT, -1)
+    var min = (BIG_INT, -1)
     var alpha = alpha
     var beta = beta
 
