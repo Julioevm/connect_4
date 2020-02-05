@@ -207,26 +207,25 @@ proc getBestMove(this: Game, board: Board, player: string, depth: int = 0,
     var alpha = alpha
     var beta = beta
 
-    var nextDepth = depth
-    if player != this.aiPlayer:
-        nextDepth += 1
-
     for pos in board.availableMoves():
         var newBoard = newBoard()
         deepCopy(newBoard, board)
 
         discard newBoard.enterMove(pos, player)
-        let move = this.getBestMove(newBoard, nextPlayer[player], nextDepth,
+        let move = this.getBestMove(newBoard, nextPlayer[player], depth + 1,
                 alpha, beta)
 
-        if player == this.aiPlayer and (move.score > max[0] or max[1] == -1):
-            max[0] = move.score
-            max[1] = pos
-            alpha = max(move.score, alpha)
-        elif player != this.aiPlayer and (move.score < min[0] or min[1] == -1):
-            min[0] = move.score
-            min[1] = pos
-            beta = min(move.score, beta)
+        if player == this.aiPlayer:
+            if move.score > max[0] or max[1] == -1:
+                max[0] = move.score
+                max[1] = pos
+                alpha = max(move.score, alpha)
+        else:
+            if move.score < min[0] or min[1] == -1:
+                min[0] = move.score
+                min[1] = pos
+                beta = min(move.score, beta)
+
         if alpha >= beta:
             break
 
